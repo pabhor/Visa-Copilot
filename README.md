@@ -26,7 +26,7 @@ The platform analyzes candidate profiles, maps them to USCIS criteria, retrieves
 
 ## 🏗 Architecture
 
-![VisaCopilot Architecture](./screenshoot/High Level Architecture.png)
+![VisaCopilot Architecture](./screenshoot/High-Level-Architecture.png)
 
 ---
 
