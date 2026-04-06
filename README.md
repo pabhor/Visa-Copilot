@@ -2,7 +2,7 @@
 
 AI-Powered Immigration Analysis System using RAG & LLMs
 
-![VisaCopilot Architecture](./screenshoot/Home-Page.png)
+![VisaCopilot Architecture](./screenshoot/Home-Page.jpg)
 ---
 
 ## 🚀 Overview
@@ -26,7 +26,7 @@ The platform analyzes candidate profiles, maps them to USCIS criteria, retrieves
 
 ## 🏗 Architecture
 
-![VisaCopilot Architecture](./screenshoot/High-level-Architecture.png)
+![VisaCopilot Architecture](./screenshoot/High level Architecture.png)
 
 ---
 
