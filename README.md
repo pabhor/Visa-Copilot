@@ -30,26 +30,19 @@ The platform analyzes candidate profiles, maps them to USCIS criteria, retrieves
 
 ---
 
-## 🔬 Methodology & Operations
+## Methodology & Operations
 
-The VisaCopilot system follows a modular AI pipeline architecture designed for explainability, scalability, and grounded reasoning.
+The VisaCopilot system is designed as a modular AI pipeline focused on grounded reasoning, structured outputs, and continuous improvement.
 
-* The process begins with a structured candidate intake through a React-based frontend, where user inputs such as publications, awards, leadership roles, and contributions are captured and normalized into machine-readable formats aligned with USCIS criteria.
+* The workflow begins with a structured candidate intake via a React frontend, where user inputs are normalized into schema-aligned JSON mapped to USCIS O-1 criteria.
+* A FastAPI backend acts as the orchestration layer, handling request flow, validation, and routing data across system components.
+* A Retrieval-Augmented Generation (RAG) pipeline grounds the analysis using USCIS policy documents. Content is chunked, embedded, and retrieved at runtime to provide relevant context for each evaluation.
+* The LLM layer (Ollama) performs controlled, prompt-driven reasoning, generating structured outputs aligned with policy requirements rather than free-form responses.
+* A Copilot logic layer synthesizes results into actionable insights, including readiness score, strengths, gaps, and recommended next steps.
+* The system includes feedback-driven refinement, enabling per-run improvements and global prompt optimization based on aggregated insights.
+* The architecture is scalable and production-ready, supporting containerization, API-first design, and observability for reliable deployment.
 
-* The FastAPI backend acts as the orchestration layer, receiving candidate data and triggering the analysis workflow. It ensures proper routing of data between different components and maintains system-level control over execution.
-
-* A Retrieval-Augmented Generation (RAG) pipeline is used to ground the analysis in real immigration policy. USCIS documents are preprocessed into chunks, embedded, and stored for retrieval. During analysis, the system queries this knowledge base to fetch the most relevant policy context for each evaluation criterion.
-
-* The retrieved context is passed into the LLM reasoning layer powered by Ollama. The model operates under controlled prompt structures to ensure outputs are structured, policy-aligned, and explainable rather than free-form generation.
-
-* A copilot logic layer synthesizes the final output by combining candidate data and LLM reasoning to generate a readiness score, strengths, gaps, required supporting documents, and actionable recommendations.
-
-* The system is designed with scalability in mind, supporting containerized deployment and future integration with cloud infrastructure. Logging, observability, and secure configuration management are considered for production readiness.
-
-This layered separation of intake, retrieval, reasoning, and decision-making ensures that the system remains transparent, auditable, and extensible for real-world use.
-
----
-
+This layered approach ensures the system is accurate, explainable, and extensible for real-world immigration analysis.
 ## 📌 Future Improvements
 
 * Expand dataset with real-world immigration case outcomes for better evaluation
