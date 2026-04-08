@@ -1,16 +1,20 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from app.api.routes.analysis import router as analysis_router
+from app.analysis.service import analyze_candidate_profile_with_persistence
 from app.db.base import init_db
-from app.db.database import get_db
 from app.db.crud import (
     create_candidate_profile,
     list_candidate_profiles,
     get_candidate_profile,
 )
+from app.db.database import get_db
 from app.db.schemas import CandidateProfileCreate, CandidateProfileResponse
-from app.analysis.service import analyze_candidate_payload
 
 app = FastAPI(title="Visa Copilot API")
 
@@ -63,11 +67,18 @@ def analyze_candidate_by_id(profile_id: int, db: Session = Depends(get_db)):
     if not profile:
         raise HTTPException(status_code=404, detail="Candidate profile not found")
 
-    payload = profile.payload
-    result = analyze_candidate_payload(payload)
+    result = analyze_candidate_profile_with_persistence(
+        db,
+        candidate_id=profile.id,
+        candidate_payload=profile.payload,
+        visa_type="O1",
+    )
 
     return {
         "profile_id": profile.id,
         "candidate_name": profile.candidate_name,
         **result,
     }
+
+
+app.include_router(analysis_router)

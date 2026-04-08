@@ -41,6 +41,7 @@ def load_and_chunk_document(file_path: str) -> list[str]:
         chunk_size=350,
         chunk_overlap=70,
     )
+
     chunks = splitter.split_text(text)
     cleaned_chunks = [chunk.strip() for chunk in chunks if chunk.strip()]
 
@@ -56,17 +57,19 @@ class KnowledgeBase:
             raise ValueError("KnowledgeBase cannot be created with empty chunks.")
 
         self.chunks = chunks
-        self.embeddings = EMBED_MODEL.encode(chunks)
-        self.index = faiss.IndexFlatL2(len(self.embeddings[0]))
-        self.index.add(np.array(self.embeddings, dtype="float32"))
+        embeddings = EMBED_MODEL.encode(chunks)
+        self.embeddings = np.array(embeddings, dtype="float32")
 
-    def search(self, query: str, k: int = 4) -> list[str]:
+        self.index = faiss.IndexFlatL2(self.embeddings.shape[1])
+        self.index.add(self.embeddings)
+
+    def search(self, query: str, k: int = 3) -> list[str]:
         if not query.strip():
             return []
 
         query_vec = EMBED_MODEL.encode([query])
-        _, indices = self.index.search(
-            np.array(query_vec, dtype="float32"),
-            min(k, len(self.chunks)),
-        )
+        query_vec = np.array(query_vec, dtype="float32")
+
+        _, indices = self.index.search(query_vec, min(k, len(self.chunks)))
+
         return [self.chunks[i] for i in indices[0] if 0 <= i < len(self.chunks)]

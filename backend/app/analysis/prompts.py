@@ -1,61 +1,132 @@
 import json
 
+ANALYSIS_PROMPT_VERSION = "o1_analysis_v5"
+EVALUATION_PROMPT_VERSION = "o1_evaluation_v3"
+REFINEMENT_PROMPT_VERSION = "o1_refinement_patch_v1"
 
-def build_analysis_prompt(candidate_payload: dict, context_chunks: list[str]) -> str:
-    context = "\n\n---\n\n".join(context_chunks)
-    candidate_json = json.dumps(candidate_payload, indent=2)
+
+def build_analysis_prompt(candidate_payload: dict, context_chunks: list[str], memory_instructions: list[str]) -> str:
+    policy_context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No policy context retrieved."
+    candidate_json = json.dumps(candidate_payload, indent=2, ensure_ascii=False)
+    memory_text = "\n".join(f"- {x}" for x in memory_instructions) if memory_instructions else "- No additional memory instructions."
 
     return f"""
-You are an immigration case analyst focused only on USCIS O-1 visa screening.
+You are an AI assistant for O-1 visa screening.
 
-Use only the provided policy context and candidate profile.
+Use only the candidate profile and policy context.
 Do not evaluate H-1B.
-Do not recommend any alternate visa path.
-Do not provide legal certainty or approval claims.
+Do not recommend other visa paths.
+Do not invent facts.
+Return only valid JSON.
 
-Your output must be detailed, specific to the candidate, and based on USCIS-style O-1 evidentiary reasoning.
+Global prompt memory instructions:
+{memory_text}
 
-You must produce exactly these 3 sections:
+Return this exact structure:
+{{
+  "analysis_overview": {{
+    "readiness_score": 0,
+    "case_assessment": "",
+    "strengths": [],
+    "gaps": [],
+    "key_risks": []
+  }},
+  "candidate_profile_summary": "",
+  "required_documents": [
+    {{
+      "document_name": "",
+      "description": "",
+      "tie_to_candidate_profile": "",
+      "priority": "high"
+    }}
+  ],
+  "criterion_breakdown": [
+    {{
+      "criterion": "",
+      "status": "strong|moderate|weak|insufficient",
+      "evidence_found": "",
+      "why_it_matters": "",
+      "improvement_steps": ""
+    }}
+  ],
+  "strategic_next_steps": [],
+  "detailed_summary": ""
+}}
 
-1. analysis_overview
-   - readiness_score: integer from 0 to 100
-   - strengths: list of candidate-specific strengths relevant to O-1 at least 3 strenghts should be identified
-   - gaps: list of candidate-specific gaps relevant to O-1
+Rules:
+- provide at least 3 candidate-specific strengths when possible
+- provide all major candidate-specific gaps
+- expand required documents in a candidate-specific way
+- make the summary evidence-based, not generic
 
-2. required_documents
-   - a detailed list of documents/evidence the candidate should prepare , name the documents specifically and tie them to the candidate's profile and USCIS O-1 criteria
-   - each item should be specific and practical for an O-1 filing context
-
-3. detailed_summary
-   - must be specific to the candidate
-   - must explain why the current profile is strong or weak under O-1 standards
-   - must include concrete next steps for improving the application
-   - must be at least 100 words
-
-Important rules:
-- Focus only on O-1 extraordinary ability analysis
-- Tie observations to the candidate's actual profile
-- Use the policy context only
-- Do not invent facts
-- Do not output markdown
-- Do not output any explanation before or after the JSON
-- Return ONLY one raw JSON object
-
-The complete output must at least 1000 words to ensure depth and detail.
 Policy Context:
-{context}
+{policy_context}
+
+Candidate Profile:
+{candidate_json}
+""".strip()
+
+
+def build_evaluation_prompt(
+    candidate_payload: dict,
+    context_chunks: list[str],
+    analysis_output: dict,
+) -> str:
+    policy_context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No policy context retrieved."
+    candidate_json = json.dumps(candidate_payload, indent=2, ensure_ascii=False)
+    analysis_json = json.dumps(analysis_output, indent=2, ensure_ascii=False)
+
+    return f"""
+You are an evaluator model.
+
+Evaluate the quality of the O-1 analysis output.
+Do not generate a new analysis.
+Return only valid JSON.
+
+Return this exact structure:
+{{
+  "overall_score": 0,
+  "policy_alignment": 0,
+  "factual_grounding": 0,
+  "completeness": 0,
+  "structure_quality": 0,
+  "feedback": {{
+    "strengths": [],
+    "issues": [],
+    "missing_points": [],
+    "refinement_instructions": [],
+    "issue_tags": [],
+    "section_scores": {{
+      "strengths": 0,
+      "gaps": 0,
+      "required_documents": 0,
+      "summary": 0,
+      "criteria": 0
+    }}
+  }}
+}}
+
+Possible issue_tags:
+- missing_strengths
+- missing_gaps
+- missing_documents
+- weak_summary
+- weak_policy_grounding
+- weak_candidate_specificity
+- weak_risk_analysis
+- weak_criteria_breakdown
+
+Use only:
+1. policy context
+2. candidate profile
+3. analysis output
+
+Policy Context:
+{policy_context}
 
 Candidate Profile:
 {candidate_json}
 
-Return JSON in this exact format:
-{{
-  "analysis_overview": {{
-    "readiness_score": 0,
-    "strengths": [],
-    "gaps": []
-  }},
-  "required_documents": [],
-  "detailed_summary": ""
-}}
-"""
+Analysis Output:
+{analysis_json}
+""".strip()

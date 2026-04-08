@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 async function handleJsonResponse(response) {
   if (!response.ok) {
@@ -20,28 +21,19 @@ async function handleJsonResponse(response) {
 export async function submitCandidateProfile(payload) {
   const response = await fetch(`${API_BASE_URL}/api/candidate-profiles`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
   return handleJsonResponse(response);
 }
 
 export async function fetchCandidateProfiles() {
-  const response = await fetch(`${API_BASE_URL}/api/candidate-profiles`, {
-    method: "GET",
-  });
-
+  const response = await fetch(`${API_BASE_URL}/api/candidate-profiles`);
   return handleJsonResponse(response);
 }
 
 export async function fetchCandidateProfileById(profileId) {
-  const response = await fetch(`${API_BASE_URL}/api/candidate-profiles/${profileId}`, {
-    method: "GET",
-  });
-
+  const response = await fetch(`${API_BASE_URL}/api/candidate-profiles/${profileId}`);
   return handleJsonResponse(response);
 }
 
@@ -49,6 +41,10 @@ export async function analyzeCandidateProfile(profileId) {
   const response = await fetch(`${API_BASE_URL}/api/candidate-profiles/${profileId}/analyze`, {
     method: "POST",
   });
+  return handleJsonResponse(response);
+}
 
+export async function fetchCandidateAnalysisHistory(profileId) {
+  const response = await fetch(`${API_BASE_URL}/api/analysis/candidate/${profileId}/history`);
   return handleJsonResponse(response);
 }

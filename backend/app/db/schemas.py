@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, EmailStr
 
 
@@ -107,6 +107,38 @@ class CandidateProfileResponse(BaseModel):
     employer_name: str | None = None
     h1b_wage_band: str | None = None
     payload: Dict[str, Any]
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisRunResponse(BaseModel):
+    id: int
+    candidate_id: int
+    parent_analysis_id: Optional[int] = None
+    run_type: str
+    visa_type: str
+    generator_model: str
+    prompt_version: str
+    retrieval_context_json: List[Any]
+    analysis_output_json: Dict[str, Any]
+    selected_final: bool
+
+    class Config:
+        from_attributes = True
+
+
+class EvaluationRunResponse(BaseModel):
+    id: int
+    analysis_run_id: int
+    evaluator_model: str
+    evaluation_prompt_version: str
+    overall_score: float
+    policy_alignment: float
+    factual_grounding: float
+    completeness: float
+    structure_quality: float
+    feedback_json: Dict[str, Any]
 
     class Config:
         from_attributes = True
